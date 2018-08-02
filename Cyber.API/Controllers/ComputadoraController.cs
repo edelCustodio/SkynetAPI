@@ -14,7 +14,7 @@ using Cyber.API.Models.DTO;
 
 namespace Cyber.API.Controllers
 {
-    [Authorize]
+    
     [RoutePrefix("api/Desktop")]
     public class ComputadoraController : ApiController
     {
@@ -45,15 +45,39 @@ namespace Cyber.API.Controllers
         [Route("getDesktopByName")]
         public ComputadoraDTO GetDesktopByName([FromUri] string name)
         {
-            return db.Computadoras.Where(w => w.nombre == name).Select(s => 
-                    new ComputadoraDTO
-                    {
-                        idComputadora = s.idComputadora,
-                        nombre = s.nombre,
-                        enLinea = s.enLinea,
-                        costoRenta = s.costoRenta,
-                        IP = s.IP
-                    }).FirstOrDefault();
+            var c = new ComputadoraDTO();
+
+            var exists = db.Computadoras.Count(w => w.nombre == name) > 0;
+
+            if (exists)
+            {
+                c = db.Computadoras.Where(w => w.nombre == name).Select(s =>
+                        new ComputadoraDTO
+                        {
+                            idComputadora = s.idComputadora,
+                            nombre = s.nombre,
+                            enLinea = s.enLinea,
+                            costoRenta = s.costoRenta,
+                            IP = s.IP
+                        }).FirstOrDefault();
+            } else {
+
+                var computadora = new Computadora();
+                computadora.nombre = name;
+                computadora.enLinea = true;
+                // computadora.costoRenta = 10;
+                computadora.IP = "127.0.0.1";
+
+                db.Computadoras.Add(computadora);
+                db.SaveChanges();
+
+                c.nombre = computadora.nombre;
+                c.idComputadora = computadora.idComputadora;
+                c.enLinea = computadora.enLinea;
+                c.costoRenta = computadora.costoRenta;
+            }
+
+            return c;            
         }
 
         [HttpPost]

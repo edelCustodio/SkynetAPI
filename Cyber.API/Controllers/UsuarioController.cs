@@ -59,6 +59,34 @@ namespace Cyber.API.Controllers
             }
         }
 
+        // POST: api/Usuario
+        [HttpPost]
+        [Route("create")]
+        public IHttpActionResult CrearUsuario([FromBody] Usuario usuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var exists = db.Usuarios.Count(w => w.correoElectronico == usuario.correoElectronico && w.usuario1 == usuario.usuario1) > 0;
+
+            if (!exists)
+            {
+                var hashingPassword = Hashing.HashPassword(usuario.contraseña);
+                usuario.contraseña = hashingPassword;
+
+                db.Usuarios.Add(usuario);
+                db.SaveChanges();
+
+                return Json(new { id = usuario.idUsuario, status = HttpStatusCode.OK });
+            }
+            else
+            {
+                return Json(new { id = 0, status = HttpStatusCode.Conflict }); // return 409
+            }
+        }
+
         private string createToken(string username, int idUsuario)
         {
             //Set issued at date
@@ -140,20 +168,7 @@ namespace Cyber.API.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Usuario
-        [ResponseType(typeof(Usuario))]
-        public IHttpActionResult PostUsuario(Usuario usuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.Usuarios.Add(usuario);
-            db.SaveChanges();
-
-            return CreatedAtRoute("DefaultApi", new { id = usuario.idUsuario }, usuario);
-        }
+       
 
         // DELETE: api/Usuario/5
         [ResponseType(typeof(Usuario))]
