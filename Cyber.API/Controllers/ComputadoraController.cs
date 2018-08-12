@@ -41,32 +41,38 @@ namespace Cyber.API.Controllers
                     }).ToList();
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("getDesktopByName")]
-        public ComputadoraDTO GetDesktopByName([FromUri] string name)
+        public ComputadoraDTO GetDesktopByName([FromBody] ComputadoraDTO cdto)
         {
             var c = new ComputadoraDTO();
 
-            var exists = db.Computadoras.Count(w => w.nombre == name) > 0;
+            var exists = db.Computadoras.Count(w => w.nombre == cdto.nombre) > 0;
 
             if (exists)
             {
-                c = db.Computadoras.Where(w => w.nombre == name).Select(s =>
-                        new ComputadoraDTO
-                        {
-                            idComputadora = s.idComputadora,
-                            nombre = s.nombre,
-                            enLinea = s.enLinea,
-                            costoRenta = s.costoRenta,
-                            IP = s.IP
-                        }).FirstOrDefault();
+                // obtener computadora
+                var cmp = db.Computadoras.Where(w => w.nombre == cdto.nombre).FirstOrDefault();
+                // actualizar IP
+                cmp.IP = cdto.IP;
+                // actualizar en base de datos
+                db.Entry(cmp).State = EntityState.Modified;
+                db.SaveChanges();
+
+                // llenar objeto para retornar
+                c.idComputadora = cmp.idComputadora;
+                c.nombre = cmp.nombre;
+                c.enLinea = cmp.enLinea;
+                c.costoRenta = cmp.costoRenta;
+                c.IP = cmp.IP;                        
+
             } else {
 
                 var computadora = new Computadora();
-                computadora.nombre = name;
+                computadora.nombre = cdto.nombre;
                 computadora.enLinea = true;
                 // computadora.costoRenta = 10;
-                computadora.IP = "127.0.0.1";
+                computadora.IP = cdto.IP;
 
                 db.Computadoras.Add(computadora);
                 db.SaveChanges();
