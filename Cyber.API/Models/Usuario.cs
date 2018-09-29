@@ -40,5 +40,7 @@ namespace Cyber.API.Models
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RegistroSesion> RegistroSesions { get; set; }
+
+        public virtual ICollection<Corte> Cortes { get; set; }
     }
 }

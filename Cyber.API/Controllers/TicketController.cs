@@ -57,6 +57,59 @@ namespace Cyber.API.Controllers
             return tickets;
         }
 
+        [HttpGet]
+        [Route("getTicketsPay")]
+        public List<TicketDTO> GetTicketsPay(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var tickets = db.Tickets.Where(w => w.status == true && (w.fecha >= fechaInicio && w.fecha <= fechaFin))
+                    .Select(s => new TicketDTO
+                    {
+                        idTicket = s.idTicket,
+                        cambio = s.cambio,
+                        fecha = s.fecha,
+                        eliminado = s.eliminado,
+                        idRegistro = s.idRegistro,
+                        idUsuario = s.idUsuario,
+                        pago = s.pago,
+                        total = s.total,
+                        status = s.status,
+                        Detalle = s.Detalle.Where(w1 => w1.eliminado == false).Select(sd => new TicketDetalleDTO
+                        {
+                            idTicketDetalle = sd.idTicketDetalle,
+                            idTicket = sd.idTicket,
+                            cantidad = sd.cantidad,
+                            precio = sd.precio,
+                            idProducto = sd.idProducto,
+                            eliminado = sd.eliminado,
+                            Producto = new ProductoDTO
+                            {
+                                idProducto = sd.Producto.idProducto,
+                                nombre = sd.Producto.nombre,
+                                cantidad = sd.Producto.cantidad,
+                                precio = sd.Producto.precio
+                            },
+                            Registro = new RegistroComputadoraDTO
+                            {
+                                idRegistro = s.idRegistro != null ? db.RegistroComputadoras.Where(w => w.idRegistro == s.idRegistro).FirstOrDefault().idRegistro : 0,
+                                totalPagar = s.idRegistro != null ? db.RegistroComputadoras.Where(w => w.idRegistro == s.idRegistro).FirstOrDefault().totalPagar : 0,
+                                total = s.idRegistro != null ? db.RegistroComputadoras.Where(w => w.idRegistro == s.idRegistro).FirstOrDefault().total : 0,
+                                idComputadora = s.idRegistro != null ? db.RegistroComputadoras.Where(w => w.idRegistro == s.idRegistro).FirstOrDefault().idComputadora : 0,
+                                fechaInicio = s.idRegistro != null ? db.RegistroComputadoras.Where(w => w.idRegistro == s.idRegistro).FirstOrDefault().fechaInicio : DateTime.Now,
+                                fechaFin = s.idRegistro != null ? db.RegistroComputadoras.Where(w => w.idRegistro == s.idRegistro).FirstOrDefault().fechaFin : null,
+                                minutos = s.idRegistro != null ? db.RegistroComputadoras.Where(w => w.idRegistro == s.idRegistro).FirstOrDefault().minutos : 0,
+                            }
+                        }).ToList(),
+                        Usuario = new UsuarioDTO
+                        {
+                            idUsuario = s.idUsuario != null ? db.Usuarios.Where(w => w.idUsuario == s.idUsuario).FirstOrDefault().idUsuario : 0,
+                            nombreCompleto = s.idUsuario != null ? db.Usuarios.Where(w => w.idUsuario == s.idUsuario).FirstOrDefault().nombreCompleto : ""
+                        }
+                        
+                    }).OrderByDescending(o => o.fecha).ToList();
+
+            return tickets;
+        }
+
         [HttpPost]
         [Route("createTicket")]
         public int CreateTicket([FromBody] Ticket ticket)
@@ -195,21 +248,6 @@ namespace Cyber.API.Controllers
             return CreatedAtRoute("DefaultApi", new { id = ticket.idTicket }, ticket);
         }
 
-        // DELETE: api/Ticket/5
-        //[ResponseType(typeof(Ticket))]
-        //public async Task<IHttpActionResult> DeleteTicket(int id)
-        //{
-        //    Ticket ticket = await db.Tickets.FindAsync(id);
-        //    if (ticket == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    db.Tickets.Remove(ticket);
-        //    await db.SaveChangesAsync();
-
-        //    return Ok(ticket);
-        //}
 
         protected override void Dispose(bool disposing)
         {

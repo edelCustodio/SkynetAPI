@@ -25,6 +25,7 @@
         public virtual DbSet<Ticket> Tickets { get; set; }
         public virtual DbSet<TicketDetalle> TicketDetalles { get; set; }
         public virtual DbSet<Usuario> Usuarios { get; set; }
+        public virtual DbSet<Corte> Cortes { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -155,6 +156,27 @@
                 .HasMany(e => e.RegistroSesions)
                 .WithRequired(e => e.Usuario)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Usuario>()
+                .HasMany(e => e.Cortes)
+                .WithRequired(e => e.Usuario)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Corte>()
+                .Property(e => e.montoInicial)
+                .HasPrecision(19, 4);
+
+            modelBuilder.Entity<Corte>()
+                .Property(e => e.montoFinal)
+                .HasPrecision(19, 4);
+
+            modelBuilder.Entity<Corte>()
+                .Property(e => e.montoVentas)
+                .HasPrecision(19, 4);
+
+            modelBuilder.Entity<Corte>()
+                .Property(e => e.diferencia)
+                .HasPrecision(19, 4);
         }
     }
 }
